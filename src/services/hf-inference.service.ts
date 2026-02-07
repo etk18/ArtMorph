@@ -175,8 +175,8 @@ const runViaReplicate = async (params: HfImageToImageParams): Promise<HfImageRes
 
   console.log(`[Replicate] Starting generation, prompt: ${prompt.substring(0, 120)}...`);
 
-  // 1. Create prediction
-  const createRes = await fetch("https://api.replicate.com/v1/predictions", {
+  // 1. Create prediction via the model-based endpoint (no version hash needed)
+  const createRes = await fetch(`https://api.replicate.com/v1/models/${REPLICATE_MODEL}/predictions`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -184,7 +184,6 @@ const runViaReplicate = async (params: HfImageToImageParams): Promise<HfImageRes
       Prefer: "wait"  // Replicate will hold the connection until done (up to 60s)
     },
     body: JSON.stringify({
-      model: REPLICATE_MODEL,
       input: {
         input_image: dataUrl,
         prompt,
@@ -326,7 +325,9 @@ const pollForResult = async (
       if (line.startsWith("data: ")) {
         lastData = line.substring(6);
         if (isError) {
-          throw new AppError(`Space returned error: ${lastData}`, 502);
+          console.error(`[HF] SSE error data: ${lastData}`);
+          const errMsg = lastData && lastData !== "null" ? lastData : "ZeroGPU Space returned an error (possibly GPU quota or image too large)";
+          throw new AppError(`Space returned error: ${errMsg}`, 502);
         }
       }
     }

@@ -186,10 +186,13 @@ const runViaReplicate = async (params: HfImageToImageParams): Promise<HfImageRes
     body: JSON.stringify({
       model: REPLICATE_MODEL,
       input: {
-        image: dataUrl,
+        input_image: dataUrl,
         prompt,
-        guidance_scale: guidanceScale,
-        steps
+        guidance: guidanceScale,
+        num_inference_steps: steps,
+        output_format: "webp",
+        aspect_ratio: "match_input_image",
+        go_fast: true
       }
     }),
     signal: AbortSignal.timeout(180000)
@@ -267,13 +270,15 @@ export const runImageToImageWithFallback = async (params: HfImageToImageParams):
   // Primary: Replicate
   if (env.replicateApiToken) {
     try {
-      console.log(`[Fallback] Using Replicate as primary provider`);
+      console.log(`[Provider] Using Replicate as primary provider`);
       return await runViaReplicate(params);
     } catch (error) {
       const message = error instanceof AppError ? error.message : String(error);
       console.error(`[Replicate] Primary failed: ${message}`);
-      console.log(`[Fallback] Falling back to HuggingFace...`);
+      console.log(`[Provider] Falling back to HuggingFace...`);
     }
+  } else {
+    console.log(`[Provider] No REPLICATE_API_TOKEN set, using HuggingFace directly`);
   }
 
   // Fallback: HuggingFace

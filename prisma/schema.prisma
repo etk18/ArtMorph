@@ -1,0 +1,162 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum GenerationStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELED
+}
+
+model UserProfile {
+  id                     String              @id @default(uuid()) @db.Uuid
+  email                  String?             @unique
+  displayName            String?
+  age                    Int?
+  gender                 String?
+  bio                    String?
+  avatarUrl              String?
+  isDevMode              Boolean             @default(false)
+  dailyGenerationsCount  Int                 @default(0)
+  lastResetAt            DateTime?
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+
+  uploadedImages         UploadedImage[]
+  generatedImages        GeneratedImage[]
+  generationJobs         GenerationJob[]
+  generationHistory      GenerationHistory[]
+
+  @@index([createdAt])
+}
+
+model UploadedImage {
+  id               String           @id @default(uuid()) @db.Uuid
+  userId           String           @db.Uuid
+  originalFilename String?
+  mimeType         String?
+  sizeBytes        Int?
+  width            Int?
+  height           Int?
+  storageBucket    String
+  storagePath      String
+  metadata         Json?
+  createdAt        DateTime         @default(now())
+
+  user             UserProfile      @relation(fields: [userId], references: [id])
+  generationJobs   GenerationJob[]
+  generatedImages  GeneratedImage[]
+
+  @@index([userId, createdAt])
+  @@index([storageBucket, storagePath])
+}
+
+model GeneratedImage {
+  id               String          @id @default(uuid()) @db.Uuid
+  userId           String          @db.Uuid
+  jobId            String?         @db.Uuid
+  sourceImageId    String?         @db.Uuid
+  storageBucket    String
+  storagePath      String
+  width            Int?
+  height           Int?
+  createdAt        DateTime        @default(now())
+
+  user             UserProfile     @relation(fields: [userId], references: [id])
+  job              GenerationJob?  @relation(fields: [jobId], references: [id])
+  sourceImage      UploadedImage?  @relation(fields: [sourceImageId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([jobId])
+}
+
+model StyleSection {
+  id          String         @id @default(uuid()) @db.Uuid
+  key         String         @unique
+  name        String
+  description String?
+  sortOrder   Int            @default(0)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  styles      StyleConfig[]
+
+  @@index([sortOrder])
+}
+
+model StyleConfig {
+  id                  String         @id @default(uuid()) @db.Uuid
+  sectionId           String         @db.Uuid
+  key                 String         @unique
+  name                String
+  baseModel           String?
+  promptPrefix        String?
+  promptSuffix        String?
+  negativePrompt      String?
+  promptTemplate      Json?
+  controlnetModule    String?
+  controlnetWeight    Float?
+  guidanceScale       Float?
+  strength            Float?
+  params              Json?
+  isActive            Boolean        @default(true)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  section             StyleSection   @relation(fields: [sectionId], references: [id])
+  generationJobs      GenerationJob[]
+
+  @@index([sectionId])
+  @@index([isActive])
+}
+
+model GenerationJob {
+  id               String             @id @default(uuid()) @db.Uuid
+  userId           String             @db.Uuid
+  styleConfigId    String?            @db.Uuid
+  inputImageId     String?            @db.Uuid
+  status           GenerationStatus   @default(QUEUED)
+  prompt           String?
+  errorMessage     String?
+  retryCount       Int                @default(0)
+  maxRetries       Int                @default(3)
+  queuedAt         DateTime?          @default(now())
+  startedAt        DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  user             UserProfile        @relation(fields: [userId], references: [id])
+  styleConfig      StyleConfig?       @relation(fields: [styleConfigId], references: [id])
+  inputImage       UploadedImage?     @relation(fields: [inputImageId], references: [id])
+  generatedImages  GeneratedImage[]
+  history          GenerationHistory[]
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@index([styleConfigId])
+}
+
+model GenerationHistory {
+  id         String            @id @default(uuid()) @db.Uuid
+  userId     String            @db.Uuid
+  jobId      String            @db.Uuid
+  status     GenerationStatus
+  message    String?
+  createdAt  DateTime          @default(now())
+
+  user       UserProfile       @relation(fields: [userId], references: [id])
+  job        GenerationJob     @relation(fields: [jobId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([jobId, createdAt])
+  @@index([status])
+}

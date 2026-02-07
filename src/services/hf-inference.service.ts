@@ -68,8 +68,9 @@ export const runImageToImage = async (params: HfImageToImageParams): Promise<HfI
     const base64 = params.inputImage.toString("base64");
     const dataUrl = `data:${mimeType};base64,${base64}`;
 
-    // 3. Call the /infer endpoint via REST API (queue-based)
-    const callRes = await fetch(`${host}/call/infer`, {
+    // 3. Call the /infer endpoint via Gradio REST API (queue-based)
+    //    Note: This Space uses api_prefix "/gradio_api"
+    const callRes = await fetch(`${host}/gradio_api/call/infer`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -77,7 +78,7 @@ export const runImageToImage = async (params: HfImageToImageParams): Promise<HfI
       },
       body: JSON.stringify({
         data: [
-          dataUrl,
+          { url: dataUrl, meta: { _type: "gradio.FileData" } },
           prompt,
           seed,
           seed === 0, // randomize_seed
@@ -260,22 +261,23 @@ const runViaReplicate = async (params: HfImageToImageParams): Promise<HfImageRes
 };
 
 /**
- * Main entry point: tries HuggingFace first, falls back to Replicate on quota errors.
+ * Main entry point: tries Replicate first (primary), falls back to HuggingFace.
  */
 export const runImageToImageWithFallback = async (params: HfImageToImageParams): Promise<HfImageResult> => {
-  try {
-    return await runImageToImage(params);
-  } catch (error) {
-    const message = error instanceof AppError ? error.message : String(error);
-    const isQuotaError = message.includes("exceeded") || message.includes("quota") || message.includes("GPU");
-
-    if (isQuotaError && env.replicateApiToken) {
-      console.log(`[HF] Quota exceeded, falling back to Replicate...`);
+  // Primary: Replicate
+  if (env.replicateApiToken) {
+    try {
+      console.log(`[Fallback] Using Replicate as primary provider`);
       return await runViaReplicate(params);
+    } catch (error) {
+      const message = error instanceof AppError ? error.message : String(error);
+      console.error(`[Replicate] Primary failed: ${message}`);
+      console.log(`[Fallback] Falling back to HuggingFace...`);
     }
-
-    throw error;
   }
+
+  // Fallback: HuggingFace
+  return await runImageToImage(params);
 };
 
 /**
@@ -288,7 +290,7 @@ const pollForResult = async (
   token: string,
   timeoutMs = 180000
 ): Promise<unknown[]> => {
-  const url = `${host}/call/infer/${eventId}`;
+  const url = `${host}/gradio_api/call/infer/${eventId}`;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 

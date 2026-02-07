@@ -39,38 +39,6 @@ const resolveSpaceHost = async (spaceId: string, token: string): Promise<string>
 };
 
 /**
- * Upload a file to the Gradio Space and get a file path reference.
- */
-const uploadToSpace = async (
-  host: string,
-  token: string,
-  imageBuffer: Buffer,
-  mimeType: string
-): Promise<string> => {
-  const blob = new Blob([new Uint8Array(imageBuffer)], { type: mimeType });
-  const formData = new FormData();
-  formData.append("files", blob, `input.${mimeType.split("/")[1] || "png"}`);
-
-  const res = await fetch(`${host}/upload`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-    body: formData,
-    signal: AbortSignal.timeout(30000)
-  });
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new AppError(`Failed to upload image to Space: ${res.status} ${text}`, 502);
-  }
-
-  const files = await res.json() as string[];
-  if (!files?.[0]) {
-    throw new AppError("Upload returned no file path", 502);
-  }
-  return files[0];
-};
-
-/**
  * Generate a style-transferred image using a HuggingFace Gradio Space.
  * Uses direct REST API calls instead of @gradio/client for reliability with ZeroGPU.
  */
@@ -95,10 +63,10 @@ export const runImageToImage = async (params: HfImageToImageParams): Promise<HfI
     const host = await resolveSpaceHost(spaceId, env.hfApiToken);
     console.log(`[HF] Space host: ${host}`);
 
-    // 2. Upload the input image
+    // 2. Convert input image to base64 data URL (no upload needed)
     const mimeType = detectMimeType(params.inputImage);
-    const uploadedPath = await uploadToSpace(host, env.hfApiToken, params.inputImage, mimeType);
-    console.log(`[HF] Uploaded image: ${uploadedPath}`);
+    const base64 = params.inputImage.toString("base64");
+    const dataUrl = `data:${mimeType};base64,${base64}`;
 
     // 3. Call the /infer endpoint via REST API (queue-based)
     const callRes = await fetch(`${host}/call/infer`, {
@@ -109,7 +77,7 @@ export const runImageToImage = async (params: HfImageToImageParams): Promise<HfI
       },
       body: JSON.stringify({
         data: [
-          { path: uploadedPath, meta: { _type: "gradio.FileData" } },
+          dataUrl,
           prompt,
           seed,
           seed === 0, // randomize_seed

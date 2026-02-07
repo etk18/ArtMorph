@@ -41,7 +41,6 @@ export const env = {
   hfDefaultModel: process.env.HF_DEFAULT_MODEL ?? "black-forest-labs/FLUX.1-Kontext-dev",
   hfDefaultSpace: process.env.HF_DEFAULT_SPACE ?? "black-forest-labs/FLUX.1-Kontext-Dev",
   hfRequestTimeoutMs: parseNumber(process.env.HF_REQUEST_TIMEOUT_MS, 180000),
-  replicateApiToken: process.env.REPLICATE_API_TOKEN ?? "",
   devPasskey: process.env.DEV_PASSKEY ?? "artmorph-dev-2026",
   freeGenerationLimit: parseNumber(process.env.FREE_GENERATION_LIMIT, 5),
   authCookieName: process.env.AUTH_COOKIE_NAME ?? "artmorph_refresh",

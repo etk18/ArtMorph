@@ -25,7 +25,6 @@ export type HfImageResult = {
 
 /**
  * Resolve the direct URL for a HuggingFace Space.
- * ZeroGPU spaces have a separate host from the standard HF domain.
  */
 const resolveSpaceHost = async (spaceId: string, token: string): Promise<string> => {
   const res = await fetch(`https://huggingface.co/api/spaces/${spaceId}/host`, {
@@ -39,8 +38,42 @@ const resolveSpaceHost = async (spaceId: string, token: string): Promise<string>
 };
 
 /**
+ * Upload a file to the Gradio Space via /gradio_api/upload.
+ * This avoids inflating the JSON payload with base64 for large images.
+ */
+const uploadToSpace = async (
+  host: string,
+  token: string,
+  imageBuffer: Buffer,
+  mimeType: string
+): Promise<string> => {
+  const blob = new Blob([new Uint8Array(imageBuffer)], { type: mimeType });
+  const formData = new FormData();
+  formData.append("files", blob, `input.${mimeType.split("/")[1] || "png"}`);
+
+  const res = await fetch(`${host}/gradio_api/upload`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+    signal: AbortSignal.timeout(60000)
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new AppError(`Failed to upload image to Space: ${res.status} ${text}`, 502);
+  }
+
+  const files = await res.json() as string[];
+  if (!files?.[0]) {
+    throw new AppError("Upload returned no file path", 502);
+  }
+  console.log(`[HF] Uploaded file path: ${files[0]}`);
+  return files[0];
+};
+
+/**
  * Generate a style-transferred image using a HuggingFace Gradio Space.
- * Uses direct REST API calls instead of @gradio/client for reliability with ZeroGPU.
+ * Flow: resolve host → upload image → queue /call/infer → poll SSE → download.
  */
 export const runImageToImage = async (params: HfImageToImageParams): Promise<HfImageResult> => {
   if (!env.hfApiToken) {
@@ -63,13 +96,11 @@ export const runImageToImage = async (params: HfImageToImageParams): Promise<HfI
     const host = await resolveSpaceHost(spaceId, env.hfApiToken);
     console.log(`[HF] Space host: ${host}`);
 
-    // 2. Convert input image to base64 data URL (no upload needed)
+    // 2. Upload the input image via /gradio_api/upload
     const mimeType = detectMimeType(params.inputImage);
-    const base64 = params.inputImage.toString("base64");
-    const dataUrl = `data:${mimeType};base64,${base64}`;
+    const uploadedPath = await uploadToSpace(host, env.hfApiToken, params.inputImage, mimeType);
 
-    // 3. Call the /infer endpoint via Gradio REST API (queue-based)
-    //    Note: This Space uses api_prefix "/gradio_api"
+    // 3. Queue the generation via /gradio_api/call/infer
     const callRes = await fetch(`${host}/gradio_api/call/infer`, {
       method: "POST",
       headers: {
@@ -78,7 +109,7 @@ export const runImageToImage = async (params: HfImageToImageParams): Promise<HfI
       },
       body: JSON.stringify({
         data: [
-          { url: dataUrl, meta: { _type: "gradio.FileData" } },
+          { path: uploadedPath, meta: { _type: "gradio.FileData" } },
           prompt,
           seed,
           seed === 0, // randomize_seed
@@ -109,7 +140,7 @@ export const runImageToImage = async (params: HfImageToImageParams): Promise<HfI
     }
 
     // 6. Download the generated image
-    console.log(`[HF] Downloading result image...`);
+    console.log(`[HF] Downloading result image from: ${imageInfo.url}`);
     const imgResponse = await fetch(imageInfo.url, {
       headers: { Authorization: `Bearer ${env.hfApiToken}` },
       signal: AbortSignal.timeout(30000)
@@ -152,141 +183,11 @@ export const runImageToImage = async (params: HfImageToImageParams): Promise<HfI
   }
 };
 
-// ─── Replicate Fallback ─────────────────────────────────────────────────────────
-
-const REPLICATE_MODEL = "black-forest-labs/flux-kontext-dev";
-
-/**
- * Fallback: generate via Replicate API when HuggingFace quota is exhausted.
- */
-const runViaReplicate = async (params: HfImageToImageParams): Promise<HfImageResult> => {
-  const token = env.replicateApiToken;
-  if (!token) {
-    throw new AppError("Replicate API token is not configured and HuggingFace quota is exhausted", 502);
-  }
-
-  const prompt = params.prompt || "Transform this image into an artistic style";
-  const guidanceScale = params.guidanceScale ?? 2.5;
-  const steps = params.numInferenceSteps ?? 28;
-
-  const mimeType = detectMimeType(params.inputImage);
-  const base64 = params.inputImage.toString("base64");
-  const dataUrl = `data:${mimeType};base64,${base64}`;
-
-  console.log(`[Replicate] Starting generation, prompt: ${prompt.substring(0, 120)}...`);
-
-  // 1. Create prediction via the model-based endpoint (no version hash needed)
-  const createRes = await fetch(`https://api.replicate.com/v1/models/${REPLICATE_MODEL}/predictions`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-      Prefer: "wait"  // Replicate will hold the connection until done (up to 60s)
-    },
-    body: JSON.stringify({
-      input: {
-        input_image: dataUrl,
-        prompt,
-        guidance: guidanceScale,
-        num_inference_steps: steps,
-        output_format: "webp",
-        aspect_ratio: "match_input_image",
-        go_fast: true
-      }
-    }),
-    signal: AbortSignal.timeout(180000)
-  });
-
-  if (!createRes.ok) {
-    const errBody = await createRes.text().catch(() => "");
-    throw new AppError(`Replicate API error: ${createRes.status} ${errBody}`, 502);
-  }
-
-  let prediction = await createRes.json() as {
-    id: string;
-    status: string;
-    output: unknown;
-    error: string | null;
-    urls?: { get?: string };
-  };
-
-  // 2. If not completed yet (Prefer: wait timed out), poll
-  while (prediction.status !== "succeeded" && prediction.status !== "failed" && prediction.status !== "canceled") {
-    console.log(`[Replicate] Status: ${prediction.status}, polling...`);
-    await new Promise(r => setTimeout(r, 2000));
-
-    const pollRes = await fetch(`https://api.replicate.com/v1/predictions/${prediction.id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-      signal: AbortSignal.timeout(10000)
-    });
-    if (!pollRes.ok) {
-      throw new AppError(`Replicate poll failed: ${pollRes.status}`, 502);
-    }
-    prediction = await pollRes.json() as typeof prediction;
-  }
-
-  if (prediction.status === "failed") {
-    throw new AppError(`Replicate generation failed: ${prediction.error || "unknown"}`, 502);
-  }
-
-  if (prediction.status === "canceled") {
-    throw new AppError("Replicate generation was canceled", 502);
-  }
-
-  // 3. Download the output image
-  // Output can be a string URL or an array of string URLs
-  const output = prediction.output;
-  const imageUrl = typeof output === "string"
-    ? output
-    : Array.isArray(output)
-      ? (output[0] as string)
-      : null;
-
-  if (!imageUrl) {
-    console.error("[Replicate] Unexpected output:", JSON.stringify(output).substring(0, 500));
-    throw new AppError("No image returned from Replicate", 502);
-  }
-
-  console.log(`[Replicate] Downloading result...`);
-  const imgRes = await fetch(imageUrl, { signal: AbortSignal.timeout(30000) });
-  if (!imgRes.ok) {
-    throw new AppError("Failed to download image from Replicate", 502);
-  }
-
-  const contentType = imgRes.headers.get("content-type") || "image/webp";
-  const arrayBuffer = await imgRes.arrayBuffer();
-  const imageBuffer = Buffer.from(arrayBuffer);
-
-  console.log(`[Replicate] Generation successful, output size: ${imageBuffer.length} bytes`);
-
-  return { image: imageBuffer, contentType };
-};
-
-/**
- * Main entry point: tries Replicate first (primary), falls back to HuggingFace.
- */
-export const runImageToImageWithFallback = async (params: HfImageToImageParams): Promise<HfImageResult> => {
-  // Primary: Replicate
-  if (env.replicateApiToken) {
-    try {
-      console.log(`[Provider] Using Replicate as primary provider`);
-      return await runViaReplicate(params);
-    } catch (error) {
-      const message = error instanceof AppError ? error.message : String(error);
-      console.error(`[Replicate] Primary failed: ${message}`);
-      console.log(`[Provider] Falling back to HuggingFace...`);
-    }
-  } else {
-    console.log(`[Provider] No REPLICATE_API_TOKEN set, using HuggingFace directly`);
-  }
-
-  // Fallback: HuggingFace
-  return await runImageToImage(params);
-};
+// Same export name so generation.service.ts doesn't need changes
+export const runImageToImageWithFallback = runImageToImage;
 
 /**
  * Poll the Gradio SSE event stream for the generation result.
- * ZeroGPU spaces queue jobs and stream progress via Server-Sent Events.
  */
 const pollForResult = async (
   host: string,
@@ -309,7 +210,8 @@ const pollForResult = async (
     }
 
     const text = await res.text();
-    // Parse the SSE text: look for "event: complete" followed by "data: ..."
+    console.log(`[HF] SSE response (first 500 chars): ${text.substring(0, 500)}`);
+
     const lines = text.split("\n");
     let lastData: string | null = null;
     let isError = false;
@@ -326,7 +228,9 @@ const pollForResult = async (
         lastData = line.substring(6);
         if (isError) {
           console.error(`[HF] SSE error data: ${lastData}`);
-          const errMsg = lastData && lastData !== "null" ? lastData : "ZeroGPU Space returned an error (possibly GPU quota or image too large)";
+          const errMsg = lastData && lastData !== "null"
+            ? lastData
+            : "ZeroGPU Space returned an error (possibly GPU quota exhausted or image too large)";
           throw new AppError(`Space returned error: ${errMsg}`, 502);
         }
       }

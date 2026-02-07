@@ -33,8 +33,8 @@ export const signup = asyncHandler(async (req: Request, res: Response) => {
   });
 
   if (user) {
-    // Create local profile
-    await prisma.userProfile.upsert({
+    // Create local profile — non-blocking so signup still succeeds even if DB is slow
+    prisma.userProfile.upsert({
       where: { id: user.id },
       update: { email: user.email },
       create: {
@@ -42,6 +42,8 @@ export const signup = asyncHandler(async (req: Request, res: Response) => {
         email: user.email,
         displayName: user.email?.split("@")[0]
       }
+    }).catch((err) => {
+      console.error("Failed to create profile during signup (will retry on login):", err);
     });
   }
 

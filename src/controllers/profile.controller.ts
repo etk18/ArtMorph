@@ -8,16 +8,35 @@ import { prisma } from "../config/prisma";
 
 async function ensureProfile(userId: string, email?: string) {
   const existing = await prisma.userProfile.findUnique({ where: { id: userId } });
-  if (!existing) {
-    await prisma.userProfile.upsert({
-      where: { id: userId },
-      update: {},
-      create: {
+  if (existing) return;
+
+  try {
+    await prisma.userProfile.create({
+      data: {
         id: userId,
         email: email ?? null,
         displayName: email?.split("@")[0] ?? null
       }
     });
+  } catch (err: unknown) {
+    // If email already exists on an orphaned profile (deleted account re-signup),
+    // clean up the orphaned profile and retry
+    const prismaErr = err as { code?: string; meta?: { target?: string[] } };
+    if (prismaErr.code === "P2002" && prismaErr.meta?.target?.includes("email") && email) {
+      const orphaned = await prisma.userProfile.findUnique({ where: { email } });
+      if (orphaned) {
+        await deleteUserAccount(orphaned.id);
+      }
+      await prisma.userProfile.create({
+        data: {
+          id: userId,
+          email,
+          displayName: email.split("@")[0] ?? null
+        }
+      });
+    } else {
+      throw err;
+    }
   }
 }
 

@@ -5,7 +5,7 @@ import { supabaseAdmin } from "../config/supabase";
 import { env } from "../config/env";
 import { AppError } from "../middleware/error-handler";
 import { composeNegativePrompt, composePrompt } from "../utils/prompt";
-import { runImageToImage } from "./hf-inference.service";
+import { runImageToImageWithFallback } from "./hf-inference.service";
 
 export type GenerateImageParams = {
   userId: string;
@@ -112,7 +112,7 @@ export const generateImage = async (params: GenerateImageParams) => {
       : inputImage
     : undefined;
 
-  const result = await runImageToImage({
+  const result = await runImageToImageWithFallback({
     model,
     provider: styleParams.provider as string | undefined,
     inputImage,

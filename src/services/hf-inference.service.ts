@@ -183,6 +183,133 @@ export const runImageToImage = async (params: HfImageToImageParams): Promise<HfI
   }
 };
 
+// ─── Replicate Fallback ─────────────────────────────────────────────────────────
+
+const REPLICATE_MODEL = "black-forest-labs/flux-kontext-dev";
+
+/**
+ * Fallback: generate via Replicate API when HuggingFace quota is exhausted.
+ */
+const runViaReplicate = async (params: HfImageToImageParams): Promise<HfImageResult> => {
+  const token = env.replicateApiToken;
+  if (!token) {
+    throw new AppError("Replicate API token is not configured and HuggingFace quota is exhausted", 502);
+  }
+
+  const prompt = params.prompt || "Transform this image into an artistic style";
+  const guidanceScale = params.guidanceScale ?? 2.5;
+  const steps = params.numInferenceSteps ?? 28;
+
+  const mimeType = detectMimeType(params.inputImage);
+  const base64 = params.inputImage.toString("base64");
+  const dataUrl = `data:${mimeType};base64,${base64}`;
+
+  console.log(`[Replicate] Starting generation, prompt: ${prompt.substring(0, 120)}...`);
+
+  // 1. Create prediction
+  const createRes = await fetch("https://api.replicate.com/v1/predictions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      Prefer: "wait"  // Replicate will hold the connection until done (up to 60s)
+    },
+    body: JSON.stringify({
+      model: REPLICATE_MODEL,
+      input: {
+        image: dataUrl,
+        prompt,
+        guidance_scale: guidanceScale,
+        steps
+      }
+    }),
+    signal: AbortSignal.timeout(180000)
+  });
+
+  if (!createRes.ok) {
+    const errBody = await createRes.text().catch(() => "");
+    throw new AppError(`Replicate API error: ${createRes.status} ${errBody}`, 502);
+  }
+
+  let prediction = await createRes.json() as {
+    id: string;
+    status: string;
+    output: unknown;
+    error: string | null;
+    urls?: { get?: string };
+  };
+
+  // 2. If not completed yet (Prefer: wait timed out), poll
+  while (prediction.status !== "succeeded" && prediction.status !== "failed" && prediction.status !== "canceled") {
+    console.log(`[Replicate] Status: ${prediction.status}, polling...`);
+    await new Promise(r => setTimeout(r, 2000));
+
+    const pollRes = await fetch(`https://api.replicate.com/v1/predictions/${prediction.id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(10000)
+    });
+    if (!pollRes.ok) {
+      throw new AppError(`Replicate poll failed: ${pollRes.status}`, 502);
+    }
+    prediction = await pollRes.json() as typeof prediction;
+  }
+
+  if (prediction.status === "failed") {
+    throw new AppError(`Replicate generation failed: ${prediction.error || "unknown"}`, 502);
+  }
+
+  if (prediction.status === "canceled") {
+    throw new AppError("Replicate generation was canceled", 502);
+  }
+
+  // 3. Download the output image
+  // Output can be a string URL or an array of string URLs
+  const output = prediction.output;
+  const imageUrl = typeof output === "string"
+    ? output
+    : Array.isArray(output)
+      ? (output[0] as string)
+      : null;
+
+  if (!imageUrl) {
+    console.error("[Replicate] Unexpected output:", JSON.stringify(output).substring(0, 500));
+    throw new AppError("No image returned from Replicate", 502);
+  }
+
+  console.log(`[Replicate] Downloading result...`);
+  const imgRes = await fetch(imageUrl, { signal: AbortSignal.timeout(30000) });
+  if (!imgRes.ok) {
+    throw new AppError("Failed to download image from Replicate", 502);
+  }
+
+  const contentType = imgRes.headers.get("content-type") || "image/webp";
+  const arrayBuffer = await imgRes.arrayBuffer();
+  const imageBuffer = Buffer.from(arrayBuffer);
+
+  console.log(`[Replicate] Generation successful, output size: ${imageBuffer.length} bytes`);
+
+  return { image: imageBuffer, contentType };
+};
+
+/**
+ * Main entry point: tries HuggingFace first, falls back to Replicate on quota errors.
+ */
+export const runImageToImageWithFallback = async (params: HfImageToImageParams): Promise<HfImageResult> => {
+  try {
+    return await runImageToImage(params);
+  } catch (error) {
+    const message = error instanceof AppError ? error.message : String(error);
+    const isQuotaError = message.includes("exceeded") || message.includes("quota") || message.includes("GPU");
+
+    if (isQuotaError && env.replicateApiToken) {
+      console.log(`[HF] Quota exceeded, falling back to Replicate...`);
+      return await runViaReplicate(params);
+    }
+
+    throw error;
+  }
+};
+
 /**
  * Poll the Gradio SSE event stream for the generation result.
  * ZeroGPU spaces queue jobs and stream progress via Server-Sent Events.

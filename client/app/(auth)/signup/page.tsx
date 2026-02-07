@@ -40,6 +40,23 @@ export default function SignupPage() {
       }
     } catch (err) {
       const msg = (err as { message?: string })?.message ?? "Signup failed";
+
+      // If user was already created (e.g. cold-start timeout), auto-login
+      if (msg.toLowerCase().includes("already registered") || msg.toLowerCase().includes("already been registered")) {
+        try {
+          const loginData = await apiFetch<{ accessToken: string }>(
+            "/auth/login",
+            { method: "POST", body: JSON.stringify({ email, password }) }
+          );
+          setAccessToken(loginData.accessToken);
+          router.push("/dashboard");
+          return;
+        } catch {
+          setError("Account exists. Try signing in instead.");
+          return;
+        }
+      }
+
       setError(msg);
     } finally {
       setLoading(false);

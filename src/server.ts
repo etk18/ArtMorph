@@ -4,6 +4,9 @@ import app from "./app";
 
 const server = app.listen(env.port, () => {
   console.log(`ArtMorph API listening on port ${env.port} (${env.nodeEnv})`);
+  console.log(`[Config] HF token: ${env.hfApiToken ? "set" : "NOT SET"}`);
+  console.log(`[Config] Replicate token: ${env.replicateApiToken ? "set" : "NOT SET"}`);
+  console.log(`[Config] Primary provider: ${env.replicateApiToken ? "Replicate" : "HuggingFace"}`);
   startJobWorker();
 });
 

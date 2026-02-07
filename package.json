@@ -13,6 +13,12 @@
     "@huggingface/inference": "^4.13.11",
     "@prisma/client": "^6.3.1",
     "@supabase/supabase-js": "^2.49.1",
+    "@types/cookie-parser": "^1.4.7",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/morgan": "^1.9.9",
+    "@types/multer": "^1.4.12",
+    "@types/node": "^22.10.2",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -20,18 +26,12 @@
     "helmet": "^7.1.0",
     "jose": "^5.6.3",
     "morgan": "^1.10.0",
-    "multer": "^1.4.5-lts.1"
+    "multer": "^1.4.5-lts.1",
+    "prisma": "^6.3.1",
+    "typescript": "^5.6.3"
   },
   "devDependencies": {
-    "@types/cookie-parser": "^1.4.7",
-    "@types/cors": "^2.8.17",
-    "@types/express": "^4.17.21",
-    "@types/morgan": "^1.9.9",
-    "@types/multer": "^1.4.12",
-    "@types/node": "^22.10.2",
-    "prisma": "^6.3.1",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^5.6.3"
+    "ts-node-dev": "^2.0.0"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

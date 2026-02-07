@@ -9,10 +9,20 @@ import { notFound } from "./middleware/not-found";
 
 const app = express();
 
+const allowedOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(",")
+  : ["http://localhost:3001"];
+
 app.use(helmet());
 app.use(
   cors({
-    origin: true,
+    origin: (origin, cb) => {
+      if (!origin || allowedOrigins.some((o) => origin.startsWith(o.trim()))) {
+        cb(null, true);
+      } else {
+        cb(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true
   })
 );

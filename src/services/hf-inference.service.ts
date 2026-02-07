@@ -1,4 +1,3 @@
-import { Client } from "@gradio/client";
 import { env } from "../config/env";
 import { AppError } from "../middleware/error-handler";
 
@@ -24,11 +23,56 @@ export type HfImageResult = {
   contentType: string;
 };
 
-const DEFAULT_SPACE = "black-forest-labs/FLUX.1-Kontext-Dev";
+/**
+ * Resolve the direct URL for a HuggingFace Space.
+ * ZeroGPU spaces have a separate host from the standard HF domain.
+ */
+const resolveSpaceHost = async (spaceId: string, token: string): Promise<string> => {
+  const res = await fetch(`https://huggingface.co/api/spaces/${spaceId}/host`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!res.ok) {
+    throw new AppError(`Failed to resolve Space host for ${spaceId}: ${res.status}`, 502);
+  }
+  const { host } = await res.json() as { host: string };
+  return host;
+};
 
 /**
- * Generate a style-transferred image using a free HuggingFace Gradio Space.
- * Uses FLUX.1 Kontext [dev] on ZeroGPU — free, high-quality image editing.
+ * Upload a file to the Gradio Space and get a file path reference.
+ */
+const uploadToSpace = async (
+  host: string,
+  token: string,
+  imageBuffer: Buffer,
+  mimeType: string
+): Promise<string> => {
+  const blob = new Blob([new Uint8Array(imageBuffer)], { type: mimeType });
+  const formData = new FormData();
+  formData.append("files", blob, `input.${mimeType.split("/")[1] || "png"}`);
+
+  const res = await fetch(`${host}/upload`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+    signal: AbortSignal.timeout(30000)
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new AppError(`Failed to upload image to Space: ${res.status} ${text}`, 502);
+  }
+
+  const files = await res.json() as string[];
+  if (!files?.[0]) {
+    throw new AppError("Upload returned no file path", 502);
+  }
+  return files[0];
+};
+
+/**
+ * Generate a style-transferred image using a HuggingFace Gradio Space.
+ * Uses direct REST API calls instead of @gradio/client for reliability with ZeroGPU.
  */
 export const runImageToImage = async (params: HfImageToImageParams): Promise<HfImageResult> => {
   if (!env.hfApiToken) {
@@ -47,38 +91,58 @@ export const runImageToImage = async (params: HfImageToImageParams): Promise<HfI
     console.log(`[HF] Input image size: ${params.inputImage.length} bytes`);
     console.log(`[HF] Guidance: ${guidanceScale}, Steps: ${steps}`);
 
-    // Convert input image Buffer to base64 data URL for the Gradio API
+    // 1. Resolve the Space host
+    const host = await resolveSpaceHost(spaceId, env.hfApiToken);
+    console.log(`[HF] Space host: ${host}`);
+
+    // 2. Upload the input image
     const mimeType = detectMimeType(params.inputImage);
-    const base64 = params.inputImage.toString("base64");
-    const dataUrl = `data:${mimeType};base64,${base64}`;
+    const uploadedPath = await uploadToSpace(host, env.hfApiToken, params.inputImage, mimeType);
+    console.log(`[HF] Uploaded image: ${uploadedPath}`);
 
-    // Connect to the Space
-    const client = await Client.connect(spaceId, {
-      token: env.hfApiToken as `hf_${string}`
+    // 3. Call the /infer endpoint via REST API (queue-based)
+    const callRes = await fetch(`${host}/call/infer`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${env.hfApiToken}`
+      },
+      body: JSON.stringify({
+        data: [
+          { path: uploadedPath, meta: { _type: "gradio.FileData" } },
+          prompt,
+          seed,
+          seed === 0, // randomize_seed
+          guidanceScale,
+          steps
+        ]
+      }),
+      signal: AbortSignal.timeout(30000)
     });
 
-    // Call the /infer endpoint
-    // Parameters: input_image, prompt, seed, randomize_seed, guidance_scale, steps
-    const result = await client.predict("/infer", {
-      input_image: { url: dataUrl, meta: { _type: "gradio.FileData" } },
-      prompt,
-      seed,
-      randomize_seed: seed === 0,
-      guidance_scale: guidanceScale,
-      steps
-    });
+    if (!callRes.ok) {
+      const errText = await callRes.text().catch(() => "");
+      throw new AppError(`Space /call/infer failed: ${callRes.status} ${errText}`, 502);
+    }
 
-    const data = result.data as Array<{ url?: string; path?: string } | number>;
-    const imageData = data[0] as { url?: string; path?: string };
+    const { event_id } = await callRes.json() as { event_id: string };
+    console.log(`[HF] Queued job: ${event_id}`);
 
-    if (!imageData?.url) {
+    // 4. Poll the event stream for the result
+    const resultData = await pollForResult(host, event_id, env.hfApiToken);
+    console.log(`[HF] Got result data`);
+
+    // 5. Extract the image URL from the result
+    const imageInfo = resultData[0] as { url?: string; path?: string } | undefined;
+    if (!imageInfo?.url) {
+      console.error(`[HF] Unexpected result format:`, JSON.stringify(resultData).substring(0, 500));
       throw new AppError("No image returned from the Space", 502);
     }
 
-    console.log(`[HF] Space returned image URL, downloading...`);
-
-    // Download the generated image from the Space's returned URL
-    const imgResponse = await fetch(imageData.url, {
+    // 6. Download the generated image
+    console.log(`[HF] Downloading result image...`);
+    const imgResponse = await fetch(imageInfo.url, {
+      headers: { Authorization: `Bearer ${env.hfApiToken}` },
       signal: AbortSignal.timeout(30000)
     });
     if (!imgResponse.ok) {
@@ -99,22 +163,13 @@ export const runImageToImage = async (params: HfImageToImageParams): Promise<HfI
     if (error instanceof AppError) {
       throw error;
     }
-    // Gradio client may throw non-Error objects — extract whatever info we can
-    let message = "Unknown error";
-    if (error instanceof Error) {
-      message = error.message;
-    } else if (typeof error === "string") {
-      message = error;
-    } else if (error && typeof error === "object") {
-      message = (error as any).message || (error as any).detail || JSON.stringify(error);
-    }
+    const message = error instanceof Error ? error.message : String(error);
     console.error(`[HF] Inference error:`, error);
-    console.error(`[HF] Error type: ${typeof error}, constructor: ${error?.constructor?.name}`);
 
-    if (message.includes("TimeoutError") || message.includes("abort")) {
+    if (message.includes("TimeoutError") || message.includes("abort") || message.includes("timed out")) {
       throw new AppError("Generation timed out. The Space may be busy — please retry.", 504);
     }
-    if (message.includes("queue") || message.includes("Queue")) {
+    if (message.includes("queue") || message.includes("Queue") || message.includes("exceeded")) {
       throw new AppError("The Space is busy. Please try again in a moment.", 503);
     }
     if (message.includes("license") || message.includes("gated") || message.includes("accept")) {
@@ -125,6 +180,63 @@ export const runImageToImage = async (params: HfImageToImageParams): Promise<HfI
     }
 
     throw new AppError(`Hugging Face inference failed: ${message}`, 502);
+  }
+};
+
+/**
+ * Poll the Gradio SSE event stream for the generation result.
+ * ZeroGPU spaces queue jobs and stream progress via Server-Sent Events.
+ */
+const pollForResult = async (
+  host: string,
+  eventId: string,
+  token: string,
+  timeoutMs = 180000
+): Promise<unknown[]> => {
+  const url = `${host}/call/infer/${eventId}`;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal
+    });
+
+    if (!res.ok) {
+      throw new AppError(`Event stream failed: ${res.status}`, 502);
+    }
+
+    const text = await res.text();
+    // Parse the SSE text: look for "event: complete" followed by "data: ..."
+    const lines = text.split("\n");
+    let lastData: string | null = null;
+    let isError = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (line === "event: error") {
+        isError = true;
+      }
+      if (line === "event: complete") {
+        isError = false;
+      }
+      if (line.startsWith("data: ")) {
+        lastData = line.substring(6);
+        if (isError) {
+          throw new AppError(`Space returned error: ${lastData}`, 502);
+        }
+      }
+    }
+
+    if (!lastData) {
+      throw new AppError("No data received from Space event stream", 502);
+    }
+
+    const parsed = JSON.parse(lastData);
+    return Array.isArray(parsed) ? parsed : [parsed];
+  } finally {
+    clearTimeout(timer);
   }
 };
 

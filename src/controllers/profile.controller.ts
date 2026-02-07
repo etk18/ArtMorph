@@ -4,11 +4,30 @@ import { AppError } from "../middleware/error-handler";
 import { getUserProfile, updateUserProfile, deleteUserAccount, toggleDevMode, checkGenerationLimit } from "../services/job.service";
 import { changePassword, deleteAccount } from "../services/auth.service";
 import { validatePassword } from "../utils/validation";
+import { prisma } from "../config/prisma";
+
+async function ensureProfile(userId: string, email?: string) {
+  const existing = await prisma.userProfile.findUnique({ where: { id: userId } });
+  if (!existing) {
+    await prisma.userProfile.upsert({
+      where: { id: userId },
+      update: {},
+      create: {
+        id: userId,
+        email: email ?? null,
+        displayName: email?.split("@")[0] ?? null
+      }
+    });
+  }
+}
 
 export const getProfile = asyncHandler(async (req: Request, res: Response) => {
   if (!req.user) {
     throw new AppError("Unauthorized", 401);
   }
+
+  // Ensure profile exists (handles race condition from non-blocking signup)
+  await ensureProfile(req.user.id, req.user.email);
 
   const profile = await getUserProfile(req.user.id);
 
@@ -150,6 +169,7 @@ export const getGenerationLimitHandler = asyncHandler(
       throw new AppError("Unauthorized", 401);
     }
 
+    await ensureProfile(req.user.id, req.user.email);
     const limit = await checkGenerationLimit(req.user.id);
 
     res.status(200).json({

@@ -79,7 +79,7 @@ function ResetPasswordContent() {
   return (
     <div className="card p-5 sm:p-8">
       <h2 className="section-title">Set a new password</h2>
-      <p className="mt-2 text-sm text-[var(--muted)]">
+      <p className="mt-2 text-sm text-[var(--text-secondary)]">
         Choose a strong password to secure your ArtMorph account.
       </p>
 
@@ -108,15 +108,15 @@ function ResetPasswordContent() {
           onChange={(event) => setConfirmPassword(event.target.value)}
           required
         />
-        {error && <p className="text-sm text-ember-500">{error}</p>}
-        {message && <p className="text-sm text-aurora-600">{message}</p>}
+        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
+        {message && <p className="text-sm text-emerald-600">{message}</p>}
         <button className="button button-primary" type="submit" disabled={loading}>
           {loading ? "Updating..." : "Update password"}
         </button>
       </form>
 
       <div className="mt-6 text-sm">
-        <Link href="/login" className="text-aurora-600">
+        <Link href="/login" className="text-[var(--text-secondary)] hover:text-[var(--text)] underline underline-offset-4">
           Back to sign in
         </Link>
       </div>

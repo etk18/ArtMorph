@@ -234,12 +234,12 @@ export default function CreatePage() {
                         <div className={`flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors ${
                             step >= s.num
                                 ? "bg-[var(--accent)] text-white shadow-sm"
-                                : "border border-[var(--border)] text-[var(--muted)]"
+                                : "border border-[var(--border)] text-[var(--text-secondary)]"
                         }`}>
                             {step > s.num ? <CheckCircle size={14} /> : s.num}
                         </div>
                         <span className={`hidden font-semibold uppercase tracking-wider text-xs xs:inline sm:inline ${
-                            step >= s.num ? "text-[var(--text)]" : "text-[var(--muted)]"
+                            step >= s.num ? "text-[var(--text)]" : "text-[var(--text-secondary)]"
                         }`}>
                             {s.label}
                         </span>
@@ -268,7 +268,7 @@ export default function CreatePage() {
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <h1 className="section-title">Choose a style</h1>
-                            <p className="text-[var(--muted)]">
+                            <p className="text-[var(--text-secondary)]">
                                 Select the artistic direction for your transformation.
                             </p>
                         </div>
@@ -286,7 +286,7 @@ export default function CreatePage() {
                     <StyleBrowser />
 
                     {selectedStyle && (
-                        <div className="card sticky bottom-4 sm:bottom-6 z-10 border-aurora-200 bg-aurora-50 p-3 sm:p-4 shadow-xl dark:border-aurora-900/50 dark:bg-aurora-900/20">
+                        <div className="card sticky bottom-4 sm:bottom-6 z-10 border-[var(--border-strong)] p-3 sm:p-4 shadow-lg">
                             <div className="flex flex-col gap-4 md:flex-row">
                                 <input
                                     type="text"
@@ -312,9 +312,9 @@ export default function CreatePage() {
                 <div className="card flex min-h-[300px] sm:min-h-[400px] flex-col items-center justify-center p-6 sm:p-12 text-center animate-in fade-in zoom-in-95 duration-500">
                     {generation.status === "processing" && (
                         <>
-                            <Loader2 className="mb-6 h-12 w-12 animate-spin text-aurora-600" />
+                            <Loader2 className="mb-6 h-12 w-12 animate-spin text-[var(--text-tertiary)]" />
                             <h2 className="text-2xl font-semibold">Transforming...</h2>
-                            <p className="mt-2 text-[var(--muted)]">
+                            <p className="mt-2 text-[var(--text-secondary)]">
                                 Our AI is reimagining your image. This usually takes 10-20
                                 seconds.
                             </p>
@@ -330,18 +330,18 @@ export default function CreatePage() {
                             {generation.resultUrl ? (
                                 <div className="grid gap-4 sm:gap-8 grid-cols-1 sm:grid-cols-2">
                                     <div>
-                                        <p className="mb-2 text-xs uppercase tracking-wider text-[var(--muted)]">Original</p>
+                                        <p className="mb-2 text-xs uppercase tracking-wider text-[var(--text-secondary)]">Original</p>
                                         {/* eslint-disable-next-line @next/next/no-img-element */}
                                         <img src={inputImage?.previewUrl} alt="Original" className="rounded-2xl border border-[var(--border)]" />
                                     </div>
                                     <div>
-                                        <p className="mb-2 text-xs uppercase tracking-wider text-[var(--muted)]">Result</p>
+                                        <p className="mb-2 text-xs uppercase tracking-wider text-[var(--text-secondary)]">Result</p>
                                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img src={generation.resultUrl} alt="Generated result" className="rounded-2xl border-4 border-aurora-500 shadow-2xl" />
+                                        <img src={generation.resultUrl} alt="Generated result" className="rounded-2xl border-2 border-[var(--accent)] shadow-lg" />
                                     </div>
                                 </div>
                             ) : (
-                                <p className="text-sm text-[var(--muted)]">
+                                <p className="text-sm text-[var(--text-secondary)]">
                                     Your image was generated successfully. View it on the dashboard.
                                 </p>
                             )}
@@ -357,7 +357,7 @@ export default function CreatePage() {
                     )}
 
                     {generation.status === "failed" && (
-                        <div className="text-ember-500">
+                        <div className="text-[var(--danger)]">
                             <h2 className="text-xl font-semibold">Generation Failed</h2>
                             <p className="mt-2">{generation.error}</p>
                             <button onClick={() => setStep(2)} className="button button-ghost mt-6">Try Again</button>

@@ -12,10 +12,8 @@ export const UploadCard = ({ onSuccess }: { onSuccess?: (img: any) => void }) =>
   const [dragOver, setDragOver] = useState(false);
   const previewUrlRef = useRef<string | null>(null);
 
-  // Zustand Store
   const { setInputImage } = useCreationStore();
 
-  // Clean up blob URL on unmount or when preview changes
   useEffect(() => {
     return () => {
       if (previewUrlRef.current) {
@@ -28,7 +26,6 @@ export const UploadCard = ({ onSuccess }: { onSuccess?: (img: any) => void }) =>
     setLoading(true);
     setStatus(null);
 
-    // Revoke previous blob URL
     if (previewUrlRef.current) {
       URL.revokeObjectURL(previewUrlRef.current);
     }
@@ -45,10 +42,8 @@ export const UploadCard = ({ onSuccess }: { onSuccess?: (img: any) => void }) =>
         previewUrl: response.previewUrl
       };
 
-      // Update Global Store
       setInputImage(imgData);
 
-      // Callback for parent transition
       if (onSuccess) onSuccess(imgData);
 
     } catch (error) {
@@ -84,22 +79,22 @@ export const UploadCard = ({ onSuccess }: { onSuccess?: (img: any) => void }) =>
   return (
     <div className="card p-4 sm:p-8">
       <div className="flex items-center gap-3">
-        <div className="rounded-2xl bg-aurora-100 p-3 text-aurora-700">
-          <UploadCloud size={20} />
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--bg-tertiary)]">
+          <UploadCloud size={20} className="text-[var(--text-secondary)]" />
         </div>
         <div>
           <h2 className="section-title">Upload an image</h2>
-          <p className="text-sm text-[var(--muted)]">
+          <p className="text-sm text-[var(--text-secondary)]">
             PNG, JPG, or WEBP up to 10MB.
           </p>
         </div>
       </div>
 
       <label
-        className={`mt-6 flex cursor-pointer flex-col items-center justify-center rounded-3xl border border-dashed px-6 py-12 text-center transition ${
+        className={`mt-6 flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed px-6 py-12 text-center transition ${
           dragOver
-            ? "border-aurora-500 bg-aurora-100 dark:bg-aurora-900/20"
-            : "border-[var(--border)] bg-[var(--bg-elevated)] hover:border-aurora-400 hover:bg-aurora-50 dark:hover:bg-aurora-900/10"
+            ? "border-[var(--accent)] bg-[var(--accent-subtle)]"
+            : "border-[var(--border)] bg-[var(--bg-secondary)] hover:border-[var(--border-strong)] hover:bg-[var(--bg-tertiary)]"
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -116,16 +111,16 @@ export const UploadCard = ({ onSuccess }: { onSuccess?: (img: any) => void }) =>
             }
           }}
         />
-        <p className="text-xs sm:text-sm text-[var(--muted)]">
+        <p className="text-xs sm:text-sm text-[var(--text-tertiary)]">
           Drag a file here or click to browse
         </p>
       </label>
 
-      {loading && <p className="mt-4 text-sm text-aurora-600 animate-pulse">Uploading...</p>}
-      {status && !loading && <p className="mt-4 text-sm text-[var(--muted)]">{status}</p>}
+      {loading && <p className="mt-4 text-sm text-[var(--text-secondary)] animate-pulse">Uploading...</p>}
+      {status && !loading && <p className="mt-4 text-sm text-[var(--text-secondary)]">{status}</p>}
 
       {preview && (
-        <div className="mt-6 overflow-hidden rounded-3xl border border-[var(--border)]">
+        <div className="mt-6 overflow-hidden rounded-xl border border-[var(--border)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={preview}

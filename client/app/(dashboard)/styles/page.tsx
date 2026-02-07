@@ -12,9 +12,9 @@ export default function StylesPage() {
       <StyleBrowser />
 
       {selectedStyle && (
-        <div className="card sticky bottom-4 sm:bottom-6 z-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-aurora-200 bg-aurora-50 p-3 sm:p-4 shadow-xl dark:border-aurora-900/50 dark:bg-aurora-900/20">
+        <div className="card sticky bottom-4 sm:bottom-6 z-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-[var(--border-strong)] p-3 sm:p-4 shadow-lg">
           <p className="text-sm font-semibold">
-            Selected: <span className="text-aurora-600">{selectedStyle.name}</span>
+            Selected: <span className="text-[var(--text-secondary)]">{selectedStyle.name}</span>
           </p>
           {inputImage ? (
             <Link

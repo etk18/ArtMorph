@@ -36,7 +36,7 @@ export default function LoginPage() {
   return (
     <div className="card p-5 sm:p-8">
       <h2 className="section-title">Welcome back</h2>
-      <p className="mt-2 text-sm text-[var(--muted)]">
+      <p className="mt-2 text-sm text-[var(--text-secondary)]">
         Sign in to access your studio.
       </p>
       <form className="mt-6 grid gap-4" onSubmit={onSubmit}>
@@ -56,16 +56,16 @@ export default function LoginPage() {
           onChange={(event) => setPassword(event.target.value)}
           required
         />
-        {error && <p className="text-sm text-ember-500">{error}</p>}
+        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
         <button className="button button-primary" type="submit" disabled={loading}>
           {loading ? "Signing in..." : "Sign in"}
         </button>
       </form>
       <div className="mt-6 flex items-center justify-between text-sm">
-        <Link href="/forgot" className="text-aurora-600">
+        <Link href="/forgot" className="text-[var(--text-secondary)] hover:text-[var(--text)] underline underline-offset-4">
           Forgot password?
         </Link>
-        <Link href="/signup" className="text-aurora-600">
+        <Link href="/signup" className="text-[var(--text-secondary)] hover:text-[var(--text)] underline underline-offset-4">
           Create account
         </Link>
       </div>

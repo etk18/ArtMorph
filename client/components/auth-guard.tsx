@@ -31,7 +31,7 @@ export const AuthGuard = ({ children }: { children: React.ReactNode }) => {
 
   if (!ready) {
     return (
-      <div className="flex h-screen items-center justify-center text-sm text-ink-400">
+      <div className="flex h-screen items-center justify-center text-sm text-zinc-400">
         Checking session...
       </div>
     );

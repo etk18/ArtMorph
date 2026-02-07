@@ -54,7 +54,7 @@ const statusIcon = (status: Job["status"]) => {
     case "FAILED":
       return <XCircle size={14} className="text-red-500" />;
     case "PROCESSING":
-      return <Loader2 size={14} className="animate-spin text-aurora-500" />;
+      return <Loader2 size={14} className="animate-spin text-[var(--text-secondary)]" />;
     case "QUEUED":
       return <Clock size={14} className="text-amber-500" />;
   }
@@ -174,7 +174,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <Loader2 className="h-6 w-6 animate-spin text-aurora-500" />
+        <Loader2 className="h-6 w-6 animate-spin text-[var(--text-secondary)]" />
       </div>
     );
   }
@@ -184,7 +184,7 @@ export default function DashboardPage() {
       <div className="flex flex-col items-center justify-center py-24 text-center">
         <XCircle className="mb-3 h-8 w-8 text-red-400" />
         <p className="text-sm font-medium">Could not load your projects</p>
-        <p className="mt-1 text-xs text-[var(--muted)]">{error}</p>
+        <p className="mt-1 text-xs text-[var(--text-secondary)]">{error}</p>
         <button onClick={fetchJobs} className="button button-primary mt-4">
           Retry
         </button>
@@ -255,7 +255,7 @@ export default function DashboardPage() {
                 Studio
               </p>
               <h1 className="page-heading mt-1 text-2xl sm:text-4xl">Dashboard</h1>
-              <p className="mt-1.5 text-sm text-[var(--muted)]">
+              <p className="mt-1.5 text-sm text-[var(--text-secondary)]">
                 Track your generations and manage your creative projects.
               </p>
             </div>
@@ -287,7 +287,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-sm font-semibold">Create</p>
-              <p className="text-xs text-[var(--muted)]">New generation</p>
+              <p className="text-xs text-[var(--text-secondary)]">New generation</p>
             </div>
           </Link>
           <Link
@@ -299,7 +299,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-sm font-semibold">Upload</p>
-              <p className="text-xs text-[var(--muted)]">Add an image</p>
+              <p className="text-xs text-[var(--text-secondary)]">Add an image</p>
             </div>
           </Link>
           <Link
@@ -311,7 +311,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-sm font-semibold">Styles</p>
-              <p className="text-xs text-[var(--muted)]">Browse styles</p>
+              <p className="text-xs text-[var(--text-secondary)]">Browse styles</p>
             </div>
           </Link>
           <Link
@@ -323,7 +323,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-sm font-semibold">Profile</p>
-              <p className="text-xs text-[var(--muted)]">Your account</p>
+              <p className="text-xs text-[var(--text-secondary)]">Your account</p>
             </div>
           </Link>
         </div>
@@ -335,7 +335,7 @@ export default function DashboardPage() {
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/20">
                 <Loader2 size={13} className="text-blue-500" />
               </div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
                 Active
               </p>
             </div>
@@ -346,7 +346,7 @@ export default function DashboardPage() {
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
                 <CheckCircle size={13} className="text-emerald-500" />
               </div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
                 Completed
               </p>
             </div>
@@ -359,7 +359,7 @@ export default function DashboardPage() {
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 dark:bg-red-900/20">
                 <XCircle size={13} className="text-red-500" />
               </div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
                 Failed
               </p>
             </div>
@@ -372,7 +372,7 @@ export default function DashboardPage() {
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
                 <ImageIcon size={13} className="text-zinc-500" />
               </div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
                 Total
               </p>
             </div>
@@ -399,7 +399,7 @@ export default function DashboardPage() {
                   <Zap size={13} className="text-violet-500" />
                 )}
               </div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
                 {genLimit?.isDevMode ? "Quota" : "Remaining"}
               </p>
             </div>
@@ -415,10 +415,10 @@ export default function DashboardPage() {
                   }`}>
                     {genLimit.remaining}
                   </p>
-                  <span className="text-sm text-[var(--muted)]">/ {genLimit.limit}</span>
+                  <span className="text-sm text-[var(--text-secondary)]">/ {genLimit.limit}</span>
                 </>
               ) : (
-                <Loader2 size={16} className="animate-spin text-[var(--muted)]" />
+                <Loader2 size={16} className="animate-spin text-[var(--text-secondary)]" />
               )}
             </div>
             {genLimit && !genLimit.isDevMode && (
@@ -443,15 +443,15 @@ export default function DashboardPage() {
               <div className="h-5 w-1 rounded-full bg-gradient-to-b from-blue-500 to-violet-500" />
               <h2 className="section-title text-lg sm:text-xl">Results</h2>
             </div>
-            <p className="mt-1 ml-3 text-xs text-[var(--muted)]">
+            <p className="mt-1 ml-3 text-xs text-[var(--text-secondary)]">
               Click to open, hover for actions.
             </p>
 
             {completedWithOutput.length === 0 ? (
               <div className="mt-6 flex flex-col items-center rounded-xl border border-dashed border-[var(--border)] py-12 text-center">
-                <ImageIcon size={32} className="mb-3 text-[var(--muted)]" />
+                <ImageIcon size={32} className="mb-3 text-[var(--text-secondary)]" />
                 <p className="text-sm font-medium">No results yet</p>
-                <p className="mt-1 text-xs text-[var(--muted)]">
+                <p className="mt-1 text-xs text-[var(--text-secondary)]">
                   Create a new project to get started.
                 </p>
                 <Link href="/create" className="button button-primary mt-4">
@@ -463,7 +463,7 @@ export default function DashboardPage() {
                 {completedWithOutput.slice(0, 9).map((job) => (
                   <div
                     key={job.id}
-                    className="group relative cursor-pointer overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)]"
+                    className="group relative cursor-pointer overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)]"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -526,7 +526,7 @@ export default function DashboardPage() {
                     onChange={(e) =>
                       setStatusFilter(e.target.value as StatusFilter)
                     }
-                    className="appearance-none rounded-lg border border-[var(--border)] bg-[var(--bg)] px-2 py-1 pl-7 text-xs font-medium text-[var(--text)] focus:outline-none focus:ring-1 focus:ring-aurora-400"
+                    className="appearance-none rounded-lg border border-[var(--border)] bg-[var(--bg)] px-2 py-1 pl-7 text-xs font-medium text-[var(--text)] focus:outline-none focus:ring-1 focus:ring-[var(--ring)]"
                   >
                     <option value="ALL">All</option>
                     <option value="COMPLETED">Completed</option>
@@ -536,7 +536,7 @@ export default function DashboardPage() {
                   </select>
                   <Filter
                     size={12}
-                    className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[var(--muted)]"
+                    className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]"
                   />
                 </div>
                 {/* Sort toggle */}
@@ -544,7 +544,7 @@ export default function DashboardPage() {
                   onClick={() =>
                     setSortMode((m) => (m === "newest" ? "oldest" : "newest"))
                   }
-                  className="flex items-center gap-1 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-2 py-1 text-xs font-medium text-[var(--muted)] hover:text-[var(--text)]"
+                  className="flex items-center gap-1 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-2 py-1 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text)]"
                   title={`Sort by ${sortMode === "newest" ? "oldest" : "newest"} first`}
                 >
                   <ArrowUpDown size={12} />
@@ -553,7 +553,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <p className="mt-1 text-xs text-[var(--muted)]">
+            <p className="mt-1 text-xs text-[var(--text-secondary)]">
               {displayJobs.length > 0
                 ? `Showing ${displayJobs.length} of ${filteredJobs.length} jobs.`
                 : "No matching jobs found."}
@@ -562,11 +562,11 @@ export default function DashboardPage() {
             <div className="mt-4 space-y-2">
               {displayJobs.length === 0 && (
                 <div className="flex flex-col items-center rounded-xl border border-dashed border-[var(--border)] py-8 text-center">
-                  <ImageIcon size={24} className="mb-2 text-[var(--muted)]" />
+                  <ImageIcon size={24} className="mb-2 text-[var(--text-secondary)]" />
                   <p className="text-sm font-medium">
                     {statusFilter === "ALL" ? "No jobs yet" : "No matching jobs"}
                   </p>
-                  <p className="mt-1 text-xs text-[var(--muted)]">
+                  <p className="mt-1 text-xs text-[var(--text-secondary)]">
                     {statusFilter === "ALL"
                       ? "Upload an image to start."
                       : "Try a different filter."}
@@ -576,7 +576,7 @@ export default function DashboardPage() {
               {displayJobs.map((job) => (
                 <div
                   key={job.id}
-                  className="group flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3"
+                  className="group flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] p-3"
                 >
                   {job.outputUrl ? (
                     <button
@@ -587,7 +587,7 @@ export default function DashboardPage() {
                       <img
                         src={job.outputUrl}
                         alt=""
-                        className="h-10 w-10 rounded-lg object-cover transition hover:ring-2 hover:ring-aurora-400"
+                        className="h-10 w-10 rounded-lg object-cover transition hover:ring-2 hover:ring-[var(--ring)]"
                       />
                     </button>
                   ) : (
@@ -599,7 +599,7 @@ export default function DashboardPage() {
                     <p className="truncate text-sm font-medium">
                       {job.styleName ?? "Generation"}
                     </p>
-                    <div className="flex items-center gap-1.5 text-xs text-[var(--muted)]">
+                    <div className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)]">
                       {statusIcon(job.status)}
                       <span>{statusLabel(job.status)}</span>
                       <span className="text-[var(--border)]">&middot;</span>
@@ -610,7 +610,7 @@ export default function DashboardPage() {
                     {job.outputUrl && (
                       <button
                         onClick={() => setLightbox(job)}
-                        className="rounded-md p-1.5 text-[var(--muted)] hover:bg-[var(--bg)] hover:text-[var(--text)]"
+                        className="rounded-md p-1.5 text-[var(--text-secondary)] hover:bg-[var(--bg)] hover:text-[var(--text)]"
                         title="Open"
                       >
                         <ExternalLink size={14} />
@@ -619,7 +619,7 @@ export default function DashboardPage() {
                     <button
                       onClick={() => handleDelete(job.id)}
                       disabled={deletingId === job.id}
-                      className="rounded-md p-1.5 text-[var(--muted)] hover:bg-ember-50 hover:text-ember-500 disabled:opacity-50 dark:hover:bg-ember-900/20"
+                      className="rounded-md p-1.5 text-[var(--text-secondary)] hover:bg-red-50 hover:text-[var(--danger)] disabled:opacity-50 dark:hover:bg-red-900/20"
                       title="Delete"
                     >
                       {deletingId === job.id ? (

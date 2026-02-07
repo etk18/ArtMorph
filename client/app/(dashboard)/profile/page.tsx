@@ -238,7 +238,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <Loader2 className="h-6 w-6 animate-spin text-aurora-500" />
+        <Loader2 className="h-6 w-6 animate-spin text-[var(--text-tertiary)]" />
       </div>
     );
   }
@@ -246,9 +246,9 @@ export default function ProfilePage() {
   if (error || !profile) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
-        <User className="mb-3 h-8 w-8 text-[var(--muted)]" />
+        <User className="mb-3 h-8 w-8 text-[var(--text-secondary)]" />
         <p className="text-sm font-medium">Could not load profile</p>
-        <p className="mt-1 text-xs text-[var(--muted)]">{error}</p>
+        <p className="mt-1 text-xs text-[var(--text-secondary)]">{error}</p>
         <button onClick={fetchProfile} className="button button-primary mt-4">
           Retry
         </button>
@@ -261,7 +261,7 @@ export default function ProfilePage() {
       {/* Header */}
       <div>
         <h1 className="page-heading">Profile</h1>
-        <p className="mt-1 text-xs sm:text-sm text-[var(--muted)]">
+        <p className="mt-1 text-xs sm:text-sm text-[var(--text-secondary)]">
           Manage your account, personal information, and security.
         </p>
       </div>
@@ -269,17 +269,17 @@ export default function ProfilePage() {
       {/* Avatar & Name Card */}
       <div className="card p-4 sm:p-6">
         <div className="flex items-center gap-3 sm:gap-5">
-          <div className="flex h-12 w-12 sm:h-16 sm:w-16 shrink-0 items-center justify-center rounded-full bg-aurora-100 text-aurora-600 dark:bg-aurora-900/30 dark:text-aurora-400">
+          <div className="flex h-12 w-12 sm:h-16 sm:w-16 shrink-0 items-center justify-center rounded-full bg-[var(--bg-tertiary)] text-[var(--text-secondary)]">
             <User size={24} />
           </div>
           <div className="min-w-0 flex-1">
             <h2 className="text-lg font-semibold truncate">
               {profile.displayName || "No display name"}
             </h2>
-            <p className="text-sm text-[var(--muted)] truncate">
+            <p className="text-sm text-[var(--text-secondary)] truncate">
               {profile.email}
             </p>
-            <p className="mt-0.5 text-xs text-[var(--muted)]">
+            <p className="mt-0.5 text-xs text-[var(--text-secondary)]">
               Member since {formatDate(profile.createdAt)}
             </p>
           </div>
@@ -289,38 +289,38 @@ export default function ProfilePage() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-2 sm:gap-4">
         <div className="card p-3 sm:p-5 text-center">
-          <Sparkles size={18} className="mx-auto mb-1 sm:mb-2 text-aurora-500" />
+          <Sparkles size={18} className="mx-auto mb-1 sm:mb-2 text-[var(--text-tertiary)]" />
           <p className="text-lg sm:text-2xl font-semibold">{profile.stats.totalJobs}</p>
-          <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs font-medium uppercase tracking-wider text-[var(--muted)]">
+          <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
             Generations
           </p>
         </div>
         <div className="card p-3 sm:p-5 text-center">
-          <Upload size={18} className="mx-auto mb-1 sm:mb-2 text-aurora-500" />
+          <Upload size={18} className="mx-auto mb-1 sm:mb-2 text-[var(--text-tertiary)]" />
           <p className="text-lg sm:text-2xl font-semibold">{profile.stats.totalUploads}</p>
-          <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs font-medium uppercase tracking-wider text-[var(--muted)]">
+          <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
             Uploads
           </p>
         </div>
         <div className="card p-3 sm:p-5 text-center">
-          <ImageIcon size={18} className="mx-auto mb-1 sm:mb-2 text-aurora-500" />
+          <ImageIcon size={18} className="mx-auto mb-1 sm:mb-2 text-[var(--text-tertiary)]" />
           <p className="text-lg sm:text-2xl font-semibold">
             {profile.stats.totalGenerated}
           </p>
-          <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs font-medium uppercase tracking-wider text-[var(--muted)]">
+          <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
             Images
           </p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-1">
+      <div className="flex gap-1 rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] p-1">
         <button
           onClick={() => setTab("personal")}
           className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition ${
             tab === "personal"
               ? "bg-[var(--bg)] shadow-sm"
-              : "text-[var(--muted)] hover:text-[var(--text)]"
+              : "text-[var(--text-secondary)] hover:text-[var(--text)]"
           }`}
         >
           <User size={14} className="mr-1.5 inline-block" />
@@ -331,7 +331,7 @@ export default function ProfilePage() {
           className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition ${
             tab === "security"
               ? "bg-[var(--bg)] shadow-sm"
-              : "text-[var(--muted)] hover:text-[var(--text)]"
+              : "text-[var(--text-secondary)] hover:text-[var(--text)]"
           }`}
         >
           <Shield size={14} className="mr-1.5 inline-block" />
@@ -371,7 +371,7 @@ export default function ProfilePage() {
             <div className="mt-4 space-y-4">
               {/* Display Name */}
               <div>
-                <label className="text-xs font-medium uppercase tracking-wider text-[var(--muted)]">
+                <label className="text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
                   Display Name
                 </label>
                 <input
@@ -389,7 +389,7 @@ export default function ProfilePage() {
               {/* Age & Gender row */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-medium uppercase tracking-wider text-[var(--muted)]">
+                  <label className="text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
                     Age
                   </label>
                   <input
@@ -405,7 +405,7 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium uppercase tracking-wider text-[var(--muted)]">
+                  <label className="text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
                     Gender
                   </label>
                   <select
@@ -427,7 +427,7 @@ export default function ProfilePage() {
 
               {/* Bio */}
               <div>
-                <label className="text-xs font-medium uppercase tracking-wider text-[var(--muted)]">
+                <label className="text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
                   Bio
                 </label>
                 <textarea
@@ -440,7 +440,7 @@ export default function ProfilePage() {
                   rows={3}
                   maxLength={300}
                 />
-                <p className="mt-1 text-right text-xs text-[var(--muted)]">
+                <p className="mt-1 text-right text-xs text-[var(--text-secondary)]">
                   {form.bio.length}/300
                 </p>
               </div>
@@ -508,10 +508,10 @@ export default function ProfilePage() {
           {/* Change Password */}
           <div className="card p-4 sm:p-6">
             <div className="flex items-center gap-2">
-              <Lock size={18} className="text-aurora-500" />
+              <Lock size={18} className="text-[var(--text-tertiary)]" />
               <h3 className="section-title text-base">Change Password</h3>
             </div>
-            <p className="mt-1 text-xs text-[var(--muted)]">
+            <p className="mt-1 text-xs text-[var(--text-secondary)]">
               Update your password to keep your account secure.
             </p>
 
@@ -530,7 +530,7 @@ export default function ProfilePage() {
             <div className="mt-4 space-y-4">
               {/* Current password */}
               <div>
-                <label className="text-xs font-medium uppercase tracking-wider text-[var(--muted)]">
+                <label className="text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
                   Current Password
                 </label>
                 <div className="relative mt-1">
@@ -549,7 +549,7 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={() => setShowCurrentPw((v) => !v)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[var(--muted)] hover:text-[var(--text)]"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[var(--text-secondary)] hover:text-[var(--text)]"
                   >
                     {showCurrentPw ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -558,7 +558,7 @@ export default function ProfilePage() {
 
               {/* New password */}
               <div>
-                <label className="text-xs font-medium uppercase tracking-wider text-[var(--muted)]">
+                <label className="text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
                   New Password
                 </label>
                 <div className="relative mt-1">
@@ -574,7 +574,7 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={() => setShowNewPw((v) => !v)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[var(--muted)] hover:text-[var(--text)]"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[var(--text-secondary)] hover:text-[var(--text)]"
                   >
                     {showNewPw ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -583,7 +583,7 @@ export default function ProfilePage() {
 
               {/* Confirm new password */}
               <div>
-                <label className="text-xs font-medium uppercase tracking-wider text-[var(--muted)]">
+                <label className="text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
                   Confirm New Password
                 </label>
                 <input
@@ -623,7 +623,7 @@ export default function ProfilePage() {
                 Danger Zone
               </h3>
             </div>
-            <p className="mt-1 text-xs text-[var(--muted)]">
+            <p className="mt-1 text-xs text-[var(--text-secondary)]">
               Permanently delete your account and all associated data. This
               action cannot be undone.
             </p>
@@ -706,9 +706,9 @@ function InfoRow({
 }) {
   return (
     <div className="flex items-start gap-3">
-      <span className="mt-0.5 shrink-0 text-[var(--muted)]">{icon}</span>
+      <span className="mt-0.5 shrink-0 text-[var(--text-secondary)]">{icon}</span>
       <div>
-        <p className="text-xs font-medium uppercase tracking-wider text-[var(--muted)]">
+        <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
           {label}
         </p>
         <p className="text-sm">{value}</p>

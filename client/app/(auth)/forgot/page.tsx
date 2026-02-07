@@ -33,7 +33,7 @@ export default function ForgotPage() {
   return (
     <div className="card p-5 sm:p-8">
       <h2 className="section-title">Reset password</h2>
-      <p className="mt-2 text-sm text-[var(--muted)]">
+      <p className="mt-2 text-sm text-[var(--text-secondary)]">
         We will send a secure reset link to your email.
       </p>
       <form className="mt-6 grid gap-4" onSubmit={onSubmit}>
@@ -45,14 +45,14 @@ export default function ForgotPage() {
           onChange={(event) => setEmail(event.target.value)}
           required
         />
-        {error && <p className="text-sm text-ember-500">{error}</p>}
-        {message && <p className="text-sm text-aurora-600">{message}</p>}
+        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
+        {message && <p className="text-sm text-emerald-600">{message}</p>}
         <button className="button button-primary" type="submit" disabled={loading}>
           {loading ? "Sending..." : "Send reset link"}
         </button>
       </form>
       <div className="mt-6 text-sm">
-        <Link href="/login" className="text-aurora-600">
+        <Link href="/login" className="text-[var(--text-secondary)] hover:text-[var(--text)] underline underline-offset-4">
           Back to login
         </Link>
       </div>

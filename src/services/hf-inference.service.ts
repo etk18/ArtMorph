@@ -99,8 +99,17 @@ export const runImageToImage = async (params: HfImageToImageParams): Promise<HfI
     if (error instanceof AppError) {
       throw error;
     }
-    const message = error instanceof Error ? error.message : "Unknown error";
-    console.error(`[HF] Inference error: ${message}`);
+    // Gradio client may throw non-Error objects — extract whatever info we can
+    let message = "Unknown error";
+    if (error instanceof Error) {
+      message = error.message;
+    } else if (typeof error === "string") {
+      message = error;
+    } else if (error && typeof error === "object") {
+      message = (error as any).message || (error as any).detail || JSON.stringify(error);
+    }
+    console.error(`[HF] Inference error:`, error);
+    console.error(`[HF] Error type: ${typeof error}, constructor: ${error?.constructor?.name}`);
 
     if (message.includes("TimeoutError") || message.includes("abort")) {
       throw new AppError("Generation timed out. The Space may be busy — please retry.", 504);

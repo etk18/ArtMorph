@@ -64,37 +64,52 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="card p-5 sm:p-8">
-      <h2 className="section-title">Create your studio</h2>
+    <div className="card p-6 sm:p-8">
+      <h2 className="text-xl font-semibold tracking-tight">Create your studio</h2>
       <p className="mt-2 text-sm text-[var(--text-secondary)]">
         Start building a new visual language.
       </p>
       <form className="mt-6 grid gap-4" onSubmit={onSubmit}>
-        <input
-          className="input"
-          placeholder="Email"
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          required
-        />
-        <input
-          className="input"
-          placeholder="Password"
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          required
-        />
-        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
-        {message && <p className="text-sm text-emerald-600">{message}</p>}
-        <button className="button button-primary" type="submit" disabled={loading}>
+        <div>
+          <label className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">Email</label>
+          <input
+            className="input"
+            placeholder="you@example.com"
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <label className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">Password</label>
+          <input
+            className="input"
+            placeholder="At least 8 characters"
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+          />
+        </div>
+        {error && (
+          <div className="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-500 ring-1 ring-red-500/20">
+            {error}
+          </div>
+        )}
+        {message && (
+          <div className="rounded-xl bg-emerald-500/10 px-3 py-2 text-sm text-emerald-500 ring-1 ring-emerald-500/20">
+            {message}
+          </div>
+        )}
+        <button className="button button-primary w-full py-2.5" type="submit" disabled={loading}>
           {loading ? "Creating..." : "Create account"}
         </button>
       </form>
-      <div className="mt-6 text-sm">
-        <Link href="/login" className="text-[var(--text-secondary)] hover:text-[var(--text)] underline underline-offset-4">
-          Already have an account? Sign in
+      <div className="mt-6 text-sm text-center">
+        <span className="text-[var(--text-secondary)]">Already have an account? </span>
+        <Link href="/login" className="font-medium text-[var(--accent)] transition hover:text-[var(--accent-light)]">
+          Sign in
         </Link>
       </div>
     </div>

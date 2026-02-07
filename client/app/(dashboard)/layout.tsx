@@ -8,9 +8,9 @@ export default function DashboardLayout({
 }) {
   return (
     <AuthGuard>
-      <div className="relative min-h-screen flex flex-col bg-[var(--bg)]">
+      <div className="relative flex min-h-screen flex-col">
         <Navbar />
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 sm:px-6 pb-10 pt-4">
+        <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-10 pt-6 sm:px-6">
           {children}
         </main>
         <footer className="creator-footer">

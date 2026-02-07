@@ -77,46 +77,63 @@ function ResetPasswordContent() {
   };
 
   return (
-    <div className="card p-5 sm:p-8">
-      <h2 className="section-title">Set a new password</h2>
+    <div className="card p-6 sm:p-8">
+      <h2 className="text-xl font-semibold tracking-tight">Set a new password</h2>
       <p className="mt-2 text-sm text-[var(--text-secondary)]">
         Choose a strong password to secure your ArtMorph account.
       </p>
 
       <form className="mt-6 grid gap-4" onSubmit={onSubmit}>
-        <input
-          className="input"
-          placeholder="Reset token"
-          type="text"
-          value={accessToken}
-          onChange={(event) => setAccessToken(event.target.value)}
-          required
-        />
-        <input
-          className="input"
-          placeholder="New password"
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          required
-        />
-        <input
-          className="input"
-          placeholder="Confirm new password"
-          type="password"
-          value={confirmPassword}
-          onChange={(event) => setConfirmPassword(event.target.value)}
-          required
-        />
-        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
-        {message && <p className="text-sm text-emerald-600">{message}</p>}
-        <button className="button button-primary" type="submit" disabled={loading}>
+        <div>
+          <label className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">Reset Token</label>
+          <input
+            className="input"
+            placeholder="Paste reset token"
+            type="text"
+            value={accessToken}
+            onChange={(event) => setAccessToken(event.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <label className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">New Password</label>
+          <input
+            className="input"
+            placeholder="At least 8 characters"
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <label className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">Confirm Password</label>
+          <input
+            className="input"
+            placeholder="Confirm new password"
+            type="password"
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
+            required
+          />
+        </div>
+        {error && (
+          <div className="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-500 ring-1 ring-red-500/20">
+            {error}
+          </div>
+        )}
+        {message && (
+          <div className="rounded-xl bg-emerald-500/10 px-3 py-2 text-sm text-emerald-500 ring-1 ring-emerald-500/20">
+            {message}
+          </div>
+        )}
+        <button className="button button-primary w-full py-2.5" type="submit" disabled={loading}>
           {loading ? "Updating..." : "Update password"}
         </button>
       </form>
 
-      <div className="mt-6 text-sm">
-        <Link href="/login" className="text-[var(--text-secondary)] hover:text-[var(--text)] underline underline-offset-4">
+      <div className="mt-6 text-sm text-center">
+        <Link href="/login" className="text-[var(--text-secondary)] transition hover:text-[var(--accent)]">
           Back to sign in
         </Link>
       </div>
@@ -126,7 +143,7 @@ function ResetPasswordContent() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<div className="card p-8 text-center">Loading...</div>}>
+    <Suspense fallback={<div className="card p-8 text-center text-sm text-[var(--text-secondary)]">Loading...</div>}>
       <ResetPasswordContent />
     </Suspense>
   );

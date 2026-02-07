@@ -45,7 +45,14 @@ export const StyleBrowser = () => {
   );
 
   if (loading) {
-    return <div className="card p-6 text-sm text-[var(--text-secondary)]">Loading styles...</div>;
+    return (
+      <div className="card flex items-center justify-center p-12">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
+          <span className="text-sm text-[var(--text-tertiary)]">Loading styles...</span>
+        </div>
+      </div>
+    );
   }
 
   if (!sections.length) {
@@ -55,16 +62,16 @@ export const StyleBrowser = () => {
   return (
     <div className="grid gap-4 sm:gap-6 lg:grid-cols-[240px_1fr]">
       <aside className="card p-3 sm:p-4">
-        <h2 className="section-title mb-3">Sections</h2>
+        <h2 className="mb-3 text-sm font-semibold tracking-tight">Sections</h2>
         <div className="flex gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible lg:pb-0">
           {sections.map((section) => (
             <button
               key={section.id}
               type="button"
               onClick={() => setActiveKey(section.key)}
-              className={`shrink-0 rounded-lg border px-3 py-2 sm:px-4 sm:py-3 text-left transition ${activeKey === section.key
-                ? "border-[var(--accent)] bg-[var(--accent-subtle)] text-[var(--text)]"
-                : "border-[var(--border)] hover:border-[var(--border-strong)]"
+              className={`shrink-0 rounded-xl border px-3 py-2 sm:px-4 sm:py-3 text-left transition-all ${activeKey === section.key
+                ? "border-[var(--accent)] bg-[var(--accent-surface)] text-[var(--text)] shadow-sm shadow-[var(--accent-glow)]"
+                : "border-[var(--glass-border)] hover:border-[var(--border-strong)] hover:bg-[var(--accent-surface)]"
                 }`}
             >
               <div className="text-sm font-semibold">{section.name}</div>
@@ -76,8 +83,8 @@ export const StyleBrowser = () => {
 
       <section className="card p-4 sm:p-6">
         <div className="mb-4 sm:mb-6">
-          <h2 className="section-title">{activeSection?.name}</h2>
-          <p className="text-sm text-[var(--text-secondary)]">
+          <h2 className="text-lg font-semibold tracking-tight">{activeSection?.name}</h2>
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">
             {activeSection?.description}
           </p>
         </div>
@@ -89,20 +96,20 @@ export const StyleBrowser = () => {
                 key={style.id}
                 type="button"
                 onClick={() => setSelectedStyle(style)}
-                className={`group relative flex flex-col items-start rounded-xl border p-3 sm:p-5 text-left transition-all ${isSelected
-                  ? "border-[var(--accent)] ring-2 ring-[var(--accent)] ring-offset-2 ring-offset-[var(--bg)]"
-                  : "border-[var(--border)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]"
+                className={`group relative flex flex-col items-start rounded-2xl border p-4 sm:p-5 text-left transition-all ${isSelected
+                  ? "border-[var(--accent)] bg-[var(--accent-surface)] ring-2 ring-[var(--accent)] ring-offset-2 ring-offset-[var(--bg)] shadow-md shadow-[var(--accent-glow)]"
+                  : "border-[var(--glass-border)] hover:border-[var(--border-strong)] hover:bg-[var(--accent-surface)]"
                   }`}
               >
                 <div className="text-base font-semibold">{style.name}</div>
-                <p className="text-xs text-[var(--text-tertiary)]">{style.baseModel}</p>
+                <p className="mt-0.5 text-xs text-[var(--text-tertiary)]">{style.baseModel}</p>
                 <div className="mt-3 text-xs text-[var(--text-tertiary)]">
                   <div>Prefix: {style.promptPrefix ?? "-"}</div>
                 </div>
 
                 {isSelected && (
-                  <div className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--accent)] text-[var(--bg)]">
-                    <Check size={12} strokeWidth={3} />
+                  <div className="absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)] text-white shadow-md">
+                    <Check size={13} strokeWidth={3} />
                   </div>
                 )}
               </button>

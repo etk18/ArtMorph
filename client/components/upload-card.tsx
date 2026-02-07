@@ -79,11 +79,11 @@ export const UploadCard = ({ onSuccess }: { onSuccess?: (img: any) => void }) =>
   return (
     <div className="card p-4 sm:p-8">
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--bg-tertiary)]">
-          <UploadCloud size={20} className="text-[var(--text-secondary)]" />
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--gradient-start)]/20 to-[var(--gradient-end)]/10">
+          <UploadCloud size={20} className="text-[var(--accent)]" />
         </div>
         <div>
-          <h2 className="section-title">Upload an image</h2>
+          <h2 className="text-base font-semibold tracking-tight">Upload an image</h2>
           <p className="text-sm text-[var(--text-secondary)]">
             PNG, JPG, or WEBP up to 10MB.
           </p>
@@ -91,10 +91,10 @@ export const UploadCard = ({ onSuccess }: { onSuccess?: (img: any) => void }) =>
       </div>
 
       <label
-        className={`mt-6 flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed px-6 py-12 text-center transition ${
+        className={`mt-6 flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 py-14 text-center transition-all ${
           dragOver
-            ? "border-[var(--accent)] bg-[var(--accent-subtle)]"
-            : "border-[var(--border)] bg-[var(--bg-secondary)] hover:border-[var(--border-strong)] hover:bg-[var(--bg-tertiary)]"
+            ? "border-[var(--accent)] bg-[var(--accent-surface)] scale-[1.01]"
+            : "border-[var(--border)] bg-[var(--bg-secondary)] hover:border-[var(--accent)] hover:bg-[var(--accent-surface)]"
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -111,16 +111,25 @@ export const UploadCard = ({ onSuccess }: { onSuccess?: (img: any) => void }) =>
             }
           }}
         />
-        <p className="text-xs sm:text-sm text-[var(--text-tertiary)]">
-          Drag a file here or click to browse
+        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent-surface)]">
+          <UploadCloud size={22} className="text-[var(--accent)]" />
+        </div>
+        <p className="text-sm font-medium text-[var(--text-secondary)]">
+          Drag a file here or <span className="text-[var(--accent)]">click to browse</span>
         </p>
+        <p className="mt-1 text-xs text-[var(--text-tertiary)]">Supports PNG, JPG, WEBP</p>
       </label>
 
-      {loading && <p className="mt-4 text-sm text-[var(--text-secondary)] animate-pulse">Uploading...</p>}
+      {loading && (
+        <div className="mt-4 flex items-center gap-2 text-sm text-[var(--accent)]">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
+          Uploading...
+        </div>
+      )}
       {status && !loading && <p className="mt-4 text-sm text-[var(--text-secondary)]">{status}</p>}
 
       {preview && (
-        <div className="mt-6 overflow-hidden rounded-xl border border-[var(--border)]">
+        <div className="mt-6 overflow-hidden rounded-2xl border border-[var(--glass-border)] shadow-lg">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={preview}

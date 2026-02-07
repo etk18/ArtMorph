@@ -34,38 +34,48 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="card p-5 sm:p-8">
-      <h2 className="section-title">Welcome back</h2>
+    <div className="card p-6 sm:p-8">
+      <h2 className="text-xl font-semibold tracking-tight">Welcome back</h2>
       <p className="mt-2 text-sm text-[var(--text-secondary)]">
         Sign in to access your studio.
       </p>
       <form className="mt-6 grid gap-4" onSubmit={onSubmit}>
-        <input
-          className="input"
-          placeholder="Email"
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          required
-        />
-        <input
-          className="input"
-          placeholder="Password"
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          required
-        />
-        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
-        <button className="button button-primary" type="submit" disabled={loading}>
+        <div>
+          <label className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">Email</label>
+          <input
+            className="input"
+            placeholder="you@example.com"
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <label className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">Password</label>
+          <input
+            className="input"
+            placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+          />
+        </div>
+        {error && (
+          <div className="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-500 ring-1 ring-red-500/20">
+            {error}
+          </div>
+        )}
+        <button className="button button-primary w-full py-2.5" type="submit" disabled={loading}>
           {loading ? "Signing in..." : "Sign in"}
         </button>
       </form>
       <div className="mt-6 flex items-center justify-between text-sm">
-        <Link href="/forgot" className="text-[var(--text-secondary)] hover:text-[var(--text)] underline underline-offset-4">
+        <Link href="/forgot" className="text-[var(--text-secondary)] transition hover:text-[var(--accent)]">
           Forgot password?
         </Link>
-        <Link href="/signup" className="text-[var(--text-secondary)] hover:text-[var(--text)] underline underline-offset-4">
+        <Link href="/signup" className="font-medium text-[var(--accent)] transition hover:text-[var(--accent-light)]">
           Create account
         </Link>
       </div>

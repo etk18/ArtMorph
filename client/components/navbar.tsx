@@ -31,12 +31,10 @@ export const Navbar = () => {
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Close mobile menu on route change
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
 
-  // Fetch dev mode status on mount
   const fetchDevStatus = useCallback(async () => {
     try {
       const data = await apiFetch<{
@@ -107,65 +105,81 @@ export const Navbar = () => {
 
   const isActive = (path: string) => pathname === path;
 
+  const navLinkClass = (path: string) =>
+    `relative px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+      isActive(path)
+        ? "text-[var(--accent)] bg-[var(--accent-surface)]"
+        : "text-[var(--text-secondary)] hover:text-[var(--text)] hover:bg-[var(--accent-surface)]"
+    }`;
+
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--bg)]/80 backdrop-blur-lg">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
+      <header className="sticky top-0 z-40 border-b border-[var(--glass-border)] bg-[var(--glass)] backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2.5 sm:px-6">
           {/* Left: Logo + Dev badge */}
-          <div className="flex items-center gap-2.5">
-            <Link href="/dashboard" className="brand-logo text-xl sm:text-2xl">
+          <div className="flex items-center gap-3">
+            <Link href="/dashboard" className="brand-logo text-xl">
               ArtMorph
             </Link>
             {isDevMode && (
-              <span className="rounded-md bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 sm:text-[10px] sm:px-2">
+              <span className="rounded-md bg-gradient-to-r from-amber-500/20 to-orange-500/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-500 ring-1 ring-amber-500/20 sm:text-[10px]">
                 Dev
               </span>
             )}
           </div>
 
           {/* Desktop nav */}
-          <nav className="hidden items-center gap-1 text-sm md:flex">
-            <Link
-              href="/dashboard"
-              className={`button button-ghost ${isActive("/dashboard") ? "bg-[var(--bg-secondary)]" : ""}`}
-            >
-              Dashboard
+          <nav className="hidden items-center gap-1 md:flex">
+            <Link href="/dashboard" className={navLinkClass("/dashboard")}>
+              <span className="flex items-center gap-1.5">
+                <LayoutDashboard size={14} />
+                Dashboard
+              </span>
             </Link>
-            <Link
-              href="/create"
-              className={`button button-ghost ${isActive("/create") ? "bg-[var(--bg-secondary)]" : ""}`}
-            >
-              Create
+            <Link href="/create" className={navLinkClass("/create")}>
+              <span className="flex items-center gap-1.5">
+                <Wand2 size={14} />
+                Create
+              </span>
             </Link>
-            <Link
-              href="/styles"
-              className={`button button-ghost ${isActive("/styles") ? "bg-[var(--bg-secondary)]" : ""}`}
-            >
-              Styles
+            <Link href="/styles" className={navLinkClass("/styles")}>
+              <span className="flex items-center gap-1.5">
+                <Palette size={14} />
+                Styles
+              </span>
             </Link>
-            <div className="mx-1 h-5 w-px bg-[var(--border)]" />
+
+            <div className="mx-2 h-5 w-px bg-[var(--border)]" />
+
             <button
               onClick={() => {
                 setDevError(null);
                 setPasskey("");
                 setShowDevModal(true);
               }}
-              className={`button button-ghost ${isDevMode ? "text-amber-600 dark:text-amber-400" : ""}`}
+              className={`rounded-lg p-2 transition-all ${
+                isDevMode
+                  ? "text-amber-500 hover:bg-amber-500/10"
+                  : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--accent-surface)]"
+              }`}
               title={isDevMode ? "Developer Mode Active" : "Developer Mode"}
             >
-              <Code2 size={15} />
+              <Code2 size={16} />
             </button>
-            <Link href="/profile" className="button button-ghost">
-              <User size={15} />
+            <Link
+              href="/profile"
+              className="rounded-lg p-2 text-[var(--text-tertiary)] transition-all hover:text-[var(--text-secondary)] hover:bg-[var(--accent-surface)]"
+            >
+              <User size={16} />
             </Link>
             <ThemeToggle />
             <button
               onClick={handleLogout}
-              className="button button-ghost"
+              className="rounded-lg p-2 text-[var(--text-tertiary)] transition-all hover:text-red-500 hover:bg-red-500/10"
               type="button"
               title="Sign out"
             >
-              <LogOut size={15} />
+              <LogOut size={16} />
             </button>
           </nav>
 
@@ -174,7 +188,7 @@ export const Navbar = () => {
             <ThemeToggle />
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="button button-ghost p-2"
+              className="rounded-lg p-2 text-[var(--text-secondary)] transition hover:bg-[var(--accent-surface)]"
               aria-label="Toggle menu"
             >
               {mobileOpen ? <X size={18} /> : <Menu size={18} />}
@@ -184,44 +198,44 @@ export const Navbar = () => {
 
         {/* Mobile dropdown */}
         {mobileOpen && (
-          <div className="border-t border-[var(--border)] bg-[var(--bg)] px-4 pb-4 pt-2 md:hidden">
+          <div className="border-t border-[var(--glass-border)] bg-[var(--glass)] px-4 pb-4 pt-2 backdrop-blur-xl md:hidden">
             <nav className="flex flex-col gap-1">
               <Link
                 href="/dashboard"
-                className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+                className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
                   isActive("/dashboard")
-                    ? "bg-[var(--bg-secondary)] text-[var(--text)]"
-                    : "text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text)]"
+                    ? "bg-[var(--accent-surface)] text-[var(--accent)]"
+                    : "text-[var(--text-secondary)] hover:bg-[var(--accent-surface)] hover:text-[var(--text)]"
                 }`}
               >
                 <LayoutDashboard size={16} /> Dashboard
               </Link>
               <Link
                 href="/create"
-                className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+                className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
                   isActive("/create")
-                    ? "bg-[var(--bg-secondary)] text-[var(--text)]"
-                    : "text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text)]"
+                    ? "bg-[var(--accent-surface)] text-[var(--accent)]"
+                    : "text-[var(--text-secondary)] hover:bg-[var(--accent-surface)] hover:text-[var(--text)]"
                 }`}
               >
                 <Wand2 size={16} /> Create
               </Link>
               <Link
                 href="/styles"
-                className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+                className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
                   isActive("/styles")
-                    ? "bg-[var(--bg-secondary)] text-[var(--text)]"
-                    : "text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text)]"
+                    ? "bg-[var(--accent-surface)] text-[var(--accent)]"
+                    : "text-[var(--text-secondary)] hover:bg-[var(--accent-surface)] hover:text-[var(--text)]"
                 }`}
               >
                 <Palette size={16} /> Styles
               </Link>
               <Link
                 href="/profile"
-                className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+                className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
                   isActive("/profile")
-                    ? "bg-[var(--bg-secondary)] text-[var(--text)]"
-                    : "text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text)]"
+                    ? "bg-[var(--accent-surface)] text-[var(--accent)]"
+                    : "text-[var(--text-secondary)] hover:bg-[var(--accent-surface)] hover:text-[var(--text)]"
                 }`}
               >
                 <User size={16} /> Profile
@@ -234,10 +248,10 @@ export const Navbar = () => {
                   setShowDevModal(true);
                   setMobileOpen(false);
                 }}
-                className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition ${
+                className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition ${
                   isDevMode
-                    ? "text-amber-600 dark:text-amber-400"
-                    : "text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text)]"
+                    ? "text-amber-500"
+                    : "text-[var(--text-secondary)] hover:bg-[var(--accent-surface)] hover:text-[var(--text)]"
                 }`}
               >
                 <Code2 size={16} />
@@ -245,7 +259,7 @@ export const Navbar = () => {
               </button>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10"
+                className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-red-500 transition hover:bg-red-500/10"
               >
                 <LogOut size={16} /> Sign Out
               </button>
@@ -257,43 +271,47 @@ export const Navbar = () => {
       {/* Dev Mode Modal */}
       {showDevModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4"
           onClick={() => setShowDevModal(false)}
         >
           <div
-            className="card w-full max-w-sm p-6 shadow-2xl"
+            className="card w-full max-w-sm p-6 shadow-2xl animate-slide-in"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 {isDevMode ? (
-                  <ShieldCheck size={20} className="text-amber-500" />
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20">
+                    <ShieldCheck size={16} className="text-amber-500" />
+                  </div>
                 ) : (
-                  <Code2 size={20} className="text-[var(--text-secondary)]" />
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--accent-surface)]">
+                    <Code2 size={16} className="text-[var(--accent)]" />
+                  </div>
                 )}
                 <h3 className="text-base font-semibold">Developer Mode</h3>
               </div>
               <button
                 onClick={() => setShowDevModal(false)}
-                className="rounded-lg p-1 text-[var(--text-secondary)] hover:bg-[var(--bg)]"
+                className="rounded-lg p-1.5 text-[var(--text-tertiary)] transition hover:bg-[var(--bg-tertiary)] hover:text-[var(--text)]"
               >
                 <X size={16} />
               </button>
             </div>
 
             {isDevMode ? (
-              <div className="mt-4">
-                <div className="rounded-lg bg-amber-50 p-3 dark:bg-amber-900/20">
-                  <div className="flex items-center gap-2 text-sm font-medium text-amber-700 dark:text-amber-400">
-                    <ShieldCheck size={16} />
+              <div className="mt-5">
+                <div className="rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 p-4 ring-1 ring-amber-500/20">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-amber-500">
+                    <ShieldCheck size={15} />
                     Developer Mode is Active
                   </div>
-                  <p className="mt-1 text-xs text-amber-600/80 dark:text-amber-400/70">
+                  <p className="mt-1.5 text-xs text-amber-500/70">
                     You have unlimited generations. Deactivate to return to the
                     free tier.
                   </p>
                 </div>
-                <div className="mt-4 flex gap-2">
+                <div className="mt-5 flex gap-2">
                   <button
                     onClick={handleToggleDevMode}
                     disabled={devLoading}
@@ -318,7 +336,7 @@ export const Navbar = () => {
                 )}
               </div>
             ) : (
-              <div className="mt-4">
+              <div className="mt-5">
                 <p className="text-sm text-[var(--text-secondary)]">
                   Enter the developer passkey to unlock unlimited generations.
                 </p>
@@ -336,7 +354,7 @@ export const Navbar = () => {
                 {devError && (
                   <p className="mt-2 text-xs text-red-500">{devError}</p>
                 )}
-                <div className="mt-4 flex gap-2">
+                <div className="mt-5 flex gap-2">
                   <button
                     onClick={handleToggleDevMode}
                     disabled={devLoading}
